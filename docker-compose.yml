@@ -4,10 +4,14 @@ services:
     container_name: db
     image: mysql
     command: --default-authentication-plugin=mysql_native_password
+    ports:
+      - 3306:3306
     volumes:
       - ./tmp/db:/var/lib/mysql
     environment:
-      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_PASSWORD: ${DB_ROOT_PASSWORD}
   api:
     container_name: api
     build: .
@@ -16,5 +20,10 @@ services:
       - .:/instabug
     ports:
       - "3000:3000"
+    environment:
+            DB_USER: ${DB_USER}
+            DB_NAME: ${DB_NAME}
+            DB_PASSWORD: ${DB_ROOT_PASSWORD}
+            DB_HOST: db
     depends_on:
       - db
