@@ -1,4 +1,6 @@
 class Application < ApplicationRecord
+  has_many :chats
+  
   before_validation :set_token, if: :has_token
 
   validates :name, presence: true
