@@ -1,13 +1,13 @@
 class ChatController < BaseApplicationController
     def index
-        app = Application.includes(:chats).find_by(token: params[:application_id])
-        serialized = ActiveModelSerializers::SerializableResource.new(app, each_serializer: ApplicationSerializer::Show)
+        chats = Chat.includes(:application).where(applications: { token: params[:application_id] })
+        serialized = ActiveModelSerializers::SerializableResource.new(chats, each_serializer: ChatSerializer::Show)
         render :json => { data: serialized }, status: :ok
     end
 
     def show
         begin
-            chat = Application.includes(:chats).find_by!(token: params[:application_id]).chats.find_by!(number: params[:id])
+            chat = Chat.includes(:application).find_by!(number: params[:id], applications: { token: params[:application_id] })
             serialized = ChatSerializer::Show.new(chat).as_json
             render :json => { data: serialized }, status: :ok
           rescue ActiveRecord::RecordNotFound => e
