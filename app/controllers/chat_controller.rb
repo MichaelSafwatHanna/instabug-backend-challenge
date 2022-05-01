@@ -17,13 +17,16 @@ class ChatController < BaseApplicationController
 
     def create
         begin
-            app = Application.find_by!(token: params[:application_id])
-            chat = Chat.new(application_id: app.id)
-
-            if chat.save
-                render json: ChatSerializer::Create.new(chat).to_json, status: :ok
-            else
-                render json: { message: "Something went wrong!", errors: chat.errors }, status: :not_acceptable
+            Chat.transaction do
+                app = Application.find_by!(token: params[:application_id])
+                chat = Chat.new(application_id: app.id)
+                if chat.save
+                    chat.respect_counters
+                    render json: ChatSerializer::Create.new(chat).to_json, status: :ok
+                else
+                    raise ActiveRecord::Rollback
+                    render json: { message: "Something went wrong!", errors: chat.errors }, status: :internal_server_error
+                end
             end
         rescue ActiveRecord::RecordNotFound => e
             render status: :not_found

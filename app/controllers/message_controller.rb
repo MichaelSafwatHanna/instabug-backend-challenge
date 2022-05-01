@@ -19,15 +19,19 @@ class MessageController < BaseApplicationController
 
     def create
         begin
+            Message.transaction do
             app = Application.find_by!(token: params[:application_id])
             chat = app.chats.find_by!(number: params[:chat_id])
             message = Message.new(chat_id: chat.id, content: message_body[:content])
 
             if message.save
-                render json: MessageSerializer::Create.new(chat).to_json, status: :ok
+                message.respect_counters
+                render json: MessageSerializer::Create.new(message).to_json, status: :ok
             else
-                render json: { message: "Something went wrong!", errors: chat.errors }, status: :not_acceptable
+                raise ActiveRecord::Rollback
+                render json: { message: "Something went wrong!", errors: message.errors }, status: :internal_server_error
             end
+        end
         rescue ActiveRecord::RecordNotFound => e
             render status: :not_found
         end

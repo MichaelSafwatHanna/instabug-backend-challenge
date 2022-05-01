@@ -12,6 +12,15 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
       MYSQL_PASSWORD: ${DB_ROOT_PASSWORD}
+
+  redis:
+    container_name: redis
+    image: redis:alpine
+    volumes:
+      - ./tmp/redis:/data
+    ports: 
+      - 6379:6379
+
   api:
     container_name: api
     build: .
@@ -25,5 +34,6 @@ services:
             DB_NAME: ${DB_NAME}
             DB_PASSWORD: ${DB_ROOT_PASSWORD}
             DB_HOST: db
+            REDIS: redis
     depends_on:
       - db
