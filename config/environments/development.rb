@@ -1,12 +1,5 @@
 Rails.application.configure do
 
-  # Use redis as a cache store
-  config.cache_store = config.cache_store = :redis_store, {
-    host: ENV['REDIS'],
-    port: 6379,
-    db: 0,
-    namespace: "cache"
-  }
 
   # Settings specified here will take precedence over those in config/application.rb.
 

@@ -30,6 +30,11 @@ gem 'bootsnap', '>= 1.1.0', require: false
 
 gem 'active_model_serializers'
 gem 'redis-rails', '~> 5.0', '>= 5.0.1'
+gem 'bunny', '~> 2.19'
+gem 'connection_pool', '~> 2.2', '>= 2.2.5'
+gem 'sneakers'
+gem 'redis'
+gem 'redis-namespace'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console

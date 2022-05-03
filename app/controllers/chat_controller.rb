@@ -16,20 +16,15 @@ class ChatController < BaseApplicationController
     end
 
     def create
-        begin
-            Chat.transaction do
-                app = Application.find_by!(token: params[:application_id])
-                chat = Chat.new(application_id: app.id)
-                if chat.save
-                    chat.respect_counters
-                    render json: ChatSerializer::Create.new(chat).to_json, status: :ok
-                else
-                    raise ActiveRecord::Rollback
-                    render json: { message: "Something went wrong!", errors: chat.errors }, status: :internal_server_error
-                end
-            end
-        rescue ActiveRecord::RecordNotFound => e
-            render status: :not_found
+        app = Application.find_by!(token: params[:application_id])
+        create_chat_command = { app_id: app.id }
+
+        RabbitmqConnection.instance.channel.with do |channel|
+            queue = channel.queue('instabug.chats', durable: false)
+            channel.default_exchange.publish(create_chat_command.to_json, routing_key: queue.name)
         end
+
+        chat = Chat.new(application_id: app.id)
+        render json: ChatSerializer::Create.new(chat).to_json, status: :ok
     end
 end

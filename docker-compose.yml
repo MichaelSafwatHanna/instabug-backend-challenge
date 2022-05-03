@@ -18,8 +18,20 @@ services:
     image: redis:alpine
     volumes:
       - ./tmp/redis:/data
-    ports: 
+    ports:
       - 6379:6379
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3-management-alpine
+    ports:
+        - 5672:5672
+        - 15672:15672
+    volumes:
+      - ./tmp/rmq:/var/lib/rabbitmq/
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
 
   api:
     container_name: api
@@ -30,10 +42,15 @@ services:
     ports:
       - "3000:3000"
     environment:
-            DB_USER: ${DB_USER}
-            DB_NAME: ${DB_NAME}
-            DB_PASSWORD: ${DB_ROOT_PASSWORD}
-            DB_HOST: db
-            REDIS: redis
+      DB_USER: ${DB_USER}
+      DB_NAME: ${DB_NAME}
+      DB_PASSWORD: ${DB_ROOT_PASSWORD}
+      DB_HOST: db
+      REDIS: redis
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASS: ${RABBITMQ_PASS}
+      RABBITMQ_HOST: rabbitmq
+      RAKE_ENV: development
     depends_on:
       - db
+      - rabbitmq

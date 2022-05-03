@@ -18,23 +18,17 @@ class MessageController < BaseApplicationController
     end
 
     def create
-        begin
-            Message.transaction do
-            app = Application.find_by!(token: params[:application_id])
-            chat = app.chats.find_by!(number: params[:chat_id])
-            message = Message.new(chat_id: chat.id, content: message_body[:content])
+        app = Application.find_by!(token: params[:application_id])
+        chat = app.chats.find_by!(number: params[:chat_id])
+        
+        create_message_command = { chat_id: chat.id, content: message_body[:content] }
+        RabbitmqConnection.instance.channel.with do |channel|
+            queue = channel.queue('instabug.messages', durable: false)
+            channel.default_exchange.publish(create_message_command.to_json, routing_key: queue.name)
+        end
 
-            if message.save
-                message.respect_counters
-                render json: MessageSerializer::Create.new(message).to_json, status: :ok
-            else
-                raise ActiveRecord::Rollback
-                render json: { message: "Something went wrong!", errors: message.errors }, status: :internal_server_error
-            end
-        end
-        rescue ActiveRecord::RecordNotFound => e
-            render status: :not_found
-        end
+        message = Message.new(chat_id: chat.id)
+        render json: MessageSerializer::Create.new(message).to_json, status: :ok
     end
 
     private def message_body
