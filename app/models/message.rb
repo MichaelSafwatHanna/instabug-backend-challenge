@@ -1,36 +1,102 @@
 class Message < ApplicationRecord
+  include Elasticsearch::Model
+  include Elasticsearch::Model::Callbacks
+
   belongs_to :chat
-  
+
   validates_uniqueness_of :number, scope: :chat_id
   after_initialize :get_number
 
-    def respect_counters
-        self.update_sequential_number
-        self.chat.increment(:messages_count)
-        self.chat.save!
-    end
+  def respect_counters
+    self.update_sequential_number
+    self.chat.increment(:messages_count)
+    self.chat.save!
+  end
 
-    def get_number
-        if self.number == 0
-          key = "messages:#{self.chat.id}"
-          entry = $redis.get(key)
-    
-          if entry.nil?
-            self.number = 1
-          else
-            count = Integer(entry)
-            count += 1
-            self.number = count
-          end
-        else
-          self.number
+  def get_number
+    if self.number == 0
+      key = "messages:#{self.chat.id}"
+      entry = $redis.get(key)
+
+      if entry.nil?
+        self.number = 1
+      else
+        count = Integer(entry)
+        count += 1
+        self.number = count
+      end
+    else
+      self.number
+    end
+  end
+
+  def update_sequential_number
+    key = "messages:#{self.chat.id}"
+    self.get_number
+    $redis.set(key, self.number.to_s)
+    self.save!
+  end
+
+  def self.search_content(app_token, chat_number, query)
+    response = self.search({
+                             query:
+                               {
+                                 bool:
+                                   {
+                                     must: [
+                                       { match: { "chat.number": chat_number } },
+                                       { match: { "chat.application.token": app_token } },
+                                       { match: { "content": query } }
+                                     ]
+                                   }
+                               }
+                           })
+    response.results.map { |r| { number: r._source.number, content: r._source.content } }
+  end
+
+  # elasticsearch index
+  def as_indexed_json(_options = nil)
+    as_json(
+      only: [:id, :number, :content],
+      include: {
+        chat: {
+          only: [:id, :number],
+          include: {
+            application: { only: [:token] }
+          }
+        }
+      }
+    )
+  end
+
+  settings index: { number_of_shards: 1, analysis: {
+    filter: {
+      trigrams_filter: {
+        type: "ngram",
+        min_gram: 3,
+        max_gram: 3
+      }
+    },
+    analyzer: {
+      trigrams: {
+        type: "custom",
+        tokenizer: "standard",
+        filter: ["lowercase", "trigrams_filter"]
+      }
+    }
+  } } do
+    mappings dynamic: 'false' do
+      indexes :id, type: :integer
+      indexes :number, type: :integer
+      indexes :content, type: :text, analyzer: :trigrams
+      indexes :chat do
+        indexes :id, type: :integer
+        indexes :number, type: :integer
+        indexes :application do
+          indexes :token, type: :text
         end
+      end
     end
+  end
 
-    def update_sequential_number
-        key = "messages:#{self.chat.id}"
-        self.get_number
-        $redis.set(key, self.number.to_s)
-        self.save!
-    end
 end

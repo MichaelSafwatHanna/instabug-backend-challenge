@@ -27,4 +27,16 @@ class ChatController < BaseApplicationController
         chat = Chat.new(application_id: app.id)
         render json: ChatSerializer::Create.new(chat).to_json, status: :ok
     end
+
+    def search
+        app_token = params[:application_id]
+        chat_number = params[:chat_id]
+        query = search_query
+        result = Message.search_content(app_token, chat_number, query)
+        render json: result.to_json, status: :ok
+    end
+
+    private def search_query
+        params.require(:query)
+    end
 end

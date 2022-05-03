@@ -33,6 +33,18 @@ services:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
 
+  elasticsearch:
+    container_name: elasticsearch
+    image: elasticsearch:7.17.1
+    ports:
+      - 9200:9200
+      - 9300:9300
+    volumes:
+      - ./tmp/elasticsearch1:/usr/share/elasticsearch/data
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+
   api:
     container_name: api
     build:
@@ -43,18 +55,21 @@ services:
       - .:/instabug
     ports:
       - "3000:3000"
+    restart: on-failure
     environment:
       DB_USER: ${DB_USER}
       DB_NAME: ${DB_NAME}
       DB_PASSWORD: ${DB_ROOT_PASSWORD}
       DB_HOST: db
-      REDIS: redis
       RABBITMQ_USER: ${RABBITMQ_USER}
       RABBITMQ_PASS: ${RABBITMQ_PASS}
       RABBITMQ_HOST: rabbitmq
+      REDIS: redis
+      ELASTICSEARCH_HOST: elasticsearch
     depends_on:
       - db
       - rabbitmq
+      - elasticsearch
 
   workers:
     container_name: rabbitmq.consumers
@@ -64,16 +79,19 @@ services:
     entrypoint: bundle exec rake sneakers:run
     volumes:
       - .:/instabug
+    restart: on-failure
     environment:
       DB_USER: ${DB_USER}
       DB_NAME: ${DB_NAME}
       DB_PASSWORD: ${DB_ROOT_PASSWORD}
       DB_HOST: db
-      REDIS: redis
       RABBITMQ_USER: ${RABBITMQ_USER}
       RABBITMQ_PASS: ${RABBITMQ_PASS}
       RABBITMQ_HOST: rabbitmq
+      REDIS: redis
+      ELASTICSEARCH_HOST: elasticsearch
       RAKE_ENV: development
     depends_on:
       - db
       - rabbitmq
+      - elasticsearch
