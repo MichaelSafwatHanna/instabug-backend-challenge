@@ -25,8 +25,8 @@ services:
     container_name: rabbitmq
     image: rabbitmq:3-management-alpine
     ports:
-        - 5672:5672
-        - 15672:15672
+      - 5672:5672
+      - 15672:15672
     volumes:
       - ./tmp/rmq:/var/lib/rabbitmq/
     environment:
@@ -35,12 +35,35 @@ services:
 
   api:
     container_name: api
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.api
     command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
     volumes:
       - .:/instabug
     ports:
       - "3000:3000"
+    environment:
+      DB_USER: ${DB_USER}
+      DB_NAME: ${DB_NAME}
+      DB_PASSWORD: ${DB_ROOT_PASSWORD}
+      DB_HOST: db
+      REDIS: redis
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASS: ${RABBITMQ_PASS}
+      RABBITMQ_HOST: rabbitmq
+    depends_on:
+      - db
+      - rabbitmq
+
+  workers:
+    container_name: rabbitmq.consumers
+    build:
+      context: .
+      dockerfile: Dockerfile.workers
+    entrypoint: bundle exec rake sneakers:run
+    volumes:
+      - .:/instabug
     environment:
       DB_USER: ${DB_USER}
       DB_NAME: ${DB_NAME}
