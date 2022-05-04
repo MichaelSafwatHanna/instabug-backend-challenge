@@ -2,20 +2,24 @@ class Message < ApplicationRecord
   include Elasticsearch::Model
   include Elasticsearch::Model::Callbacks
 
+  attr_reader :key
+
   belongs_to :chat
 
   validates_uniqueness_of :number, scope: :chat_id
   after_initialize :get_number
 
+  def key
+    @key = "messages:#{self.chat.id}"
+  end
+
   def respect_counters
-    self.update_sequential_number
     self.chat.increment(:messages_count)
     self.chat.save!
   end
 
   def get_number
     if self.number == 0
-      key = "messages:#{self.chat.id}"
       entry = $redis.get(key)
 
       if entry.nil?
@@ -30,11 +34,9 @@ class Message < ApplicationRecord
     end
   end
 
-  def update_sequential_number
-    key = "messages:#{self.chat.id}"
+  def assign_number
     self.get_number
     $redis.set(key, self.number.to_s)
-    self.save!
   end
 
   def self.search_content(app_token, chat_number, query)

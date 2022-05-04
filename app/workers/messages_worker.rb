@@ -10,12 +10,12 @@ class MessagesWorker
     deserialized = JSON.parse(message_json)
     ActiveRecord::Base.connection_pool.with_connection do
       Message.transaction do
-        message = Message.new(content: deserialized['content'], chat_id: deserialized['chat_id'])
+        message = Message.new(content: deserialized['content'], chat_id: deserialized['chat_id'], number: deserialized['number'])
 
         if message.save!
           message.respect_counters
         else
-          puts "Transaction failed!\nCouldn't create message on chat with id #{deserialized['chat_id']}"
+          puts "Transaction failed!\nCouldn't create message on chat with id #{deserialized['chat_id']} and message number #{deserialized['number']}"
           raise ActiveRecord::Rollback
         end
       end

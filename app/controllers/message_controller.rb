@@ -20,14 +20,18 @@ class MessageController < BaseApplicationController
     def create
         app = Application.find_by!(token: params[:application_id])
         chat = app.chats.find_by!(number: params[:chat_id])
+
+        message = Message.new(chat_id: chat.id)
+
+        # reserve the number to this instance
+        message.assign_number
         
-        create_message_command = { chat_id: chat.id, content: message_body[:content] }
+        create_message_command = { chat_id: chat.id, number: message.number, content: message_body[:content] }
         RabbitmqConnection.instance.channel.with do |channel|
             queue = channel.queue('instabug.messages', durable: false)
             channel.default_exchange.publish(create_message_command.to_json, routing_key: queue.name)
         end
 
-        message = Message.new(chat_id: chat.id)
         render json: MessageSerializer::Create.new(message).to_json, status: :ok
     end
 

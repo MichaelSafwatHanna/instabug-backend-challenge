@@ -17,14 +17,18 @@ class ChatController < BaseApplicationController
 
     def create
         app = Application.find_by!(token: params[:application_id])
-        create_chat_command = { app_id: app.id }
+        chat = Chat.new(application_id: app.id)
+
+        # reserve the number to this instance
+        chat.assign_number
+
+        create_chat_command = { app_id: app.id, number: chat.number }
 
         RabbitmqConnection.instance.channel.with do |channel|
             queue = channel.queue('instabug.chats', durable: false)
             channel.default_exchange.publish(create_chat_command.to_json, routing_key: queue.name)
         end
 
-        chat = Chat.new(application_id: app.id)
         render json: ChatSerializer::Create.new(chat).to_json, status: :ok
     end
 
