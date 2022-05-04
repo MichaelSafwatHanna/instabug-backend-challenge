@@ -7,6 +7,8 @@ class Message < ApplicationRecord
   belongs_to :chat
 
   validates_uniqueness_of :number, scope: :chat_id
+  validates :content, presence: true
+
   after_initialize :get_number
 
   def key

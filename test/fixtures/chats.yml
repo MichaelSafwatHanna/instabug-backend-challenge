@@ -1,11 +1,11 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  number: 
+  number: 1
   application_id: 1
   messages_count: 1
 
 two:
-  number: 
+  number: 2
   application_id: 1
   messages_count: 1
