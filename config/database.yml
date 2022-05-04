@@ -13,10 +13,7 @@ default: &default
   adapter: mysql2
   encoding: utf8
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  database: <%= ENV['DB_NAME'] %>
-  username: <%= ENV['DB_USER'] %>
-  password: <%= ENV['DB_PASSWORD'] %>
-  host: <%= ENV['DB_HOST'] %>
+  url: <%= ENV['DB_URL'] %>
 
 development:
   <<: *default
@@ -26,7 +23,7 @@ development:
 # Do not set this db to the same as development or production.
 test:
   <<: *default
-  database: test
+  url: <%= ENV['DB_URL_TEST'] %>
 # As with config/secrets.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is
 # ever seen by anyone, they now have access to your database.

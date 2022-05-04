@@ -9,9 +9,9 @@ services:
     volumes:
       - ./tmp/db:/var/lib/mysql
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
 
   redis:
     container_name: redis
@@ -57,10 +57,8 @@ services:
       - "3000:3000"
     restart: on-failure
     environment:
-      DB_USER: ${DB_USER}
-      DB_NAME: ${DB_NAME}
-      DB_PASSWORD: ${DB_ROOT_PASSWORD}
-      DB_HOST: db
+      DB_URL: ${DB_CONNECTION_STRING}
+      DB_URL_TEST: ${DB_CONNECTION_STRING_TEST}
       RABBITMQ_USER: ${RABBITMQ_USER}
       RABBITMQ_PASS: ${RABBITMQ_PASS}
       RABBITMQ_HOST: rabbitmq
@@ -81,10 +79,7 @@ services:
       - .:/instabug
     restart: on-failure
     environment:
-      DB_USER: ${DB_USER}
-      DB_NAME: ${DB_NAME}
-      DB_PASSWORD: ${DB_ROOT_PASSWORD}
-      DB_HOST: db
+      DB_URL: ${DB_CONNECTION_STRING}
       RABBITMQ_USER: ${RABBITMQ_USER}
       RABBITMQ_PASS: ${RABBITMQ_PASS}
       RABBITMQ_HOST: rabbitmq
