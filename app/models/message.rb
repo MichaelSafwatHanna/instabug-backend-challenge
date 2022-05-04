@@ -11,6 +11,12 @@ class Message < ApplicationRecord
 
   after_initialize :get_number
 
+  before_validation :remove_whitespaces
+
+  def remove_whitespaces
+    self.content.strip!
+  end
+
   def key
     @key = "messages:#{self.chat.id}"
   end

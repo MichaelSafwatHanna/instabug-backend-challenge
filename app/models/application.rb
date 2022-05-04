@@ -8,6 +8,12 @@ class Application < ApplicationRecord
   validates :token, presence: true
   validates_uniqueness_of :token
 
+  before_validation :remove_whitespaces
+
+  def remove_whitespaces
+    self.name.strip!
+  end
+
   def set_token
     self.token = SecureRandom.uuid
   end
