@@ -4,6 +4,6 @@ class ApplicationSerializer
   end
 
   class Create < ActiveModel::Serializer
-    attributes :name
+    attributes :token
   end
 end
