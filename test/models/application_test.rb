@@ -18,4 +18,10 @@ class ApplicationTest < ActiveSupport::TestCase
 
     assert_equal 0, app.chats_count
   end
+
+  test "should create application" do
+    app = Application.new(name: "test app")
+
+    assert app.save
+  end
 end

@@ -9,4 +9,12 @@ class ChatTest < ActiveSupport::TestCase
     chat1.save
     assert_not chat2.save
   end
+
+  test "should create chat" do
+    app = Application.new(name: "test app")
+    app.save
+    chat = Chat.new(application_id: app.id, number: 1)
+    chat.save
+    assert chat.save
+  end
 end

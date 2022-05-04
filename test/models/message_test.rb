@@ -25,4 +25,15 @@ class MessageTest < ActiveSupport::TestCase
     msg2 = Message.new(chat_id: chat.id, number: 1, content: "Test")
     assert_not msg2.save
   end
+
+  test "should create message" do
+    app = Application.new(name: "test app")
+    app.save
+    chat = Chat.new(application_id: app.id, number: 1)
+    chat.save
+
+    msg = Message.new(chat_id: chat.id, number: 1, content: "Test")
+    assert msg.save
+  end
+
 end
