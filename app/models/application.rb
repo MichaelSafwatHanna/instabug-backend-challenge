@@ -6,6 +6,7 @@ class Application < ApplicationRecord
   validates :name, presence: true
   validates :chats_count, presence: true
   validates :token, presence: true
+  validates_uniqueness_of :token
 
   def set_token
     self.token = SecureRandom.uuid
