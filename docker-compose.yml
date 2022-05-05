@@ -38,9 +38,8 @@ services:
     image: elasticsearch:7.17.1
     ports:
       - 9200:9200
-      - 9300:9300
     volumes:
-      - ./tmp/elasticsearch1:/usr/share/elasticsearch/data
+      - ./tmp/elasticsearch:/usr/share/elasticsearch/data
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
@@ -50,6 +49,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.api
+    entrypoint: ./entrypoint.sh
     command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
     volumes:
       - .:/instabug
@@ -74,7 +74,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.workers
-    entrypoint: bundle exec rake sneakers:run
+    entrypoint: ./entrypoint.sh
+    command: bundle exec rake sneakers:run
     volumes:
       - .:/instabug
     restart: on-failure
@@ -86,6 +87,7 @@ services:
       REDIS: redis
       ELASTICSEARCH_HOST: elasticsearch
       RAKE_ENV: development
+      WORKER: true
     depends_on:
       - db
       - rabbitmq
