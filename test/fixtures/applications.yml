@@ -1,11 +1,11 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  token: MyString
-  name: MyString
+  token: "a2e21099-1a8e-45db-a20d-ad80fb838bd6"
+  name: Application 1
   chats_count: 1
 
 two:
-  token: MyString
-  name: MyString
+  token: "31b104ab-a917-4cdc-9926-f3ec9710b335"
+  name: Application 2
   chats_count: 1

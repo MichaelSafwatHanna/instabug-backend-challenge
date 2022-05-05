@@ -14,7 +14,9 @@ class Message < ApplicationRecord
   before_validation :remove_whitespaces
 
   def remove_whitespaces
-    self.content.strip!
+    unless self.content.nil?
+      self.content.strip!
+    end
   end
 
   def key

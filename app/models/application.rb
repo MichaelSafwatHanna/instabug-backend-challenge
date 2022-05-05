@@ -11,7 +11,9 @@ class Application < ApplicationRecord
   before_validation :remove_whitespaces
 
   def remove_whitespaces
-    self.name.strip!
+    unless self.name.nil?
+      self.name.strip!
+    end
   end
 
   def set_token
