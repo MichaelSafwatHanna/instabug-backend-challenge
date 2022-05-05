@@ -7,7 +7,7 @@
 #   Character.create(name: 'Luke', movie: movies.first)
 
 for i in 0..10 do
-    Application.create({
-        name: "Application #{i}"
-    })
+  Application.create({
+                       name: "Application #{i}"
+                     })
 end

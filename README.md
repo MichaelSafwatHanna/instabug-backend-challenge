@@ -1,19 +1,19 @@
 # Instabug backend challenge
 
 - [Instabug backend challenge](#instabug-backend-challenge)
-  - [Problem definition](#problem-definition)
-  - [Phases](#phases)
-    - [Analysis](#analysis)
-      - [Database design](#database-design)
-        - [Application](#application)
-        - [Chats](#chats)
-        - [Messages](#messages)
-      - [API Design](#api-design)
-        - [Models](#models)
-        - [Endpoints](#endpoints)
-    - [Implementation](#implementation)
-  - [Tradeoffs](#tradeoffs)
-  - [To improve](#to-improve)
+    - [Problem definition](#problem-definition)
+    - [Phases](#phases)
+        - [Analysis](#analysis)
+            - [Database design](#database-design)
+                - [Application](#application)
+                - [Chats](#chats)
+                - [Messages](#messages)
+            - [API Design](#api-design)
+                - [Models](#models)
+                - [Endpoints](#endpoints)
+        - [Implementation](#implementation)
+    - [Tradeoffs](#tradeoffs)
+    - [To improve](#to-improve)
 
 ## Problem definition
 
@@ -23,19 +23,28 @@ each application will have a token (generated) and a name (provided).
 The token is the identifier that devices use to send chats to that application.
 
 Each application can have many chats, and each chat should have a number.
-Numbering of chats in each application starts from 1 (no 2 chats in the same application may have the same number). The number of the chat should be returned in the chat creation request.
+Numbering of chats in each application starts from 1 (no 2 chats in the same application may have the same number). The
+number of the chat should be returned in the chat creation request.
 
-A chat contains messages where messages have numbers that start from 1 for each chat (no 2 messages in the chat application may have the same number). The number of the message should also be returned in the message creation request.
+A chat contains messages where messages have numbers that start from 1 for each chat (no 2 messages in the chat
+application may have the same number). The number of the message should also be returned in the message creation
+request.
 
-The client should never see the ID of any of the entities, The client identifies the application by its token and the chat by its number along with the application token.
+The client should never see the ID of any of the entities, The client identifies the application by its token and the
+chat by its number along with the application token.
 
-It's required to have an endpoint for searching through messages of a specific chat, It should be able to partially match messages’ bodies (Elasticsearch should be used for this).
+It's required to have an endpoint for searching through messages of a specific chat, It should be able to partially
+match messages’ bodies (Elasticsearch should be used for this).
 
-The applications table should contain a column called chats_count that contains the number of chats for this application. Similarly, the chats table should contain a column called messages_count that contains the number of messages in this chat. These columns don’t have to be live. However, they shouldn’t be lagging more than 1 hour.
+The applications table should contain a column called chats_count that contains the number of chats for this
+application. Similarly, the chats table should contain a column called messages_count that contains the number of
+messages in this chat. These columns don’t have to be live. However, they shouldn’t be lagging more than 1 hour.
 
-Assume that the system is to receive many requests. It might be running on multiple servers in parallel and thus multiple requests may be processed concurrently. Make sure to handle race conditions.
+Assume that the system is to receive many requests. It might be running on multiple servers in parallel and thus
+multiple requests may be processed concurrently. Make sure to handle race conditions.
 
-Try to minimize the queries and avoid writing directly to MySQL while serving the requests (especially for the chats and messages creation endpoints). You can use a queuing system to achieve that.
+Try to minimize the queries and avoid writing directly to MySQL while serving the requests (especially for the chats and
+messages creation endpoints). You can use a queuing system to achieve that.
 
 It is allowed for chats and messages to take time to be persisted.
 

@@ -9,7 +9,7 @@ class RabbitmqConnection
     @connection = Bunny.new(:host => ENV['RABBITMQ_HOST'], :user => ENV['RABBITMQ_USER'], :password => ENV['RABBITMQ_PASS'], :durable => false)
     @connection.start
   end
-  
+
   def channel
     @channel ||= ConnectionPool.new do
       connection.create_channel

@@ -9,7 +9,7 @@ class MessageTest < ActiveSupport::TestCase
 
     msg = Message.new(chat_id: chat.id, number: 1)
     msg.save
-    
+
     assert_not msg.save
   end
 

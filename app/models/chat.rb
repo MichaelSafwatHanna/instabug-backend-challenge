@@ -30,7 +30,7 @@ class Chat < ApplicationRecord
       self.number
     end
   end
-  
+
   def assign_number
     self.get_number
     $redis.set(key, self.number.to_s)
