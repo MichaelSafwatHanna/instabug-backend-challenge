@@ -1,20 +1,21 @@
+# frozen_string_literal: true
+
 module Api
   module V1
     class ChatController < BaseApplicationController
       def index
         chats = Chat.includes(:application).where(applications: { token: params[:application_id] })
         serialized = ActiveModelSerializers::SerializableResource.new(chats, each_serializer: ChatSerializer::Show)
-        render :json => { data: serialized }, status: :ok
+        render json: { data: serialized }, status: :ok
       end
 
       def show
-        begin
-          chat = Chat.includes(:application).find_by!(number: params[:id], applications: { token: params[:application_id] })
-          serialized = ChatSerializer::Show.new(chat).as_json
-          render :json => { data: serialized }, status: :ok
-        rescue ActiveRecord::RecordNotFound => e
-          render status: :not_found
-        end
+        chat = Chat.includes(:application).find_by!(number: params[:id],
+                                                    applications: { token: params[:application_id] })
+        serialized = ChatSerializer::Show.new(chat).as_json
+        render json: { data: serialized }, status: :ok
+      rescue ActiveRecord::RecordNotFound
+        render status: :not_found
       end
 
       def create
@@ -42,7 +43,9 @@ module Api
         render json: result.to_json, status: :ok
       end
 
-      private def search_query
+      private
+
+      def search_query
         params.require(:query)
       end
     end

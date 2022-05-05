@@ -1,0 +1,24 @@
+GlobalVars:
+  AllowedVariables:
+    - $redis
+
+Style/Documentation:
+  Enabled: false
+
+Metrics/MethodLength:
+  Enabled: false
+
+Style/MixinUsage:
+  Enabled: false
+
+Naming/AccessorMethodName:
+  Enabled: false
+
+Layout/LineLength:
+  Enabled: false
+
+Metrics/AbcSize:
+  Enabled: false
+
+Metrics/BlockLength:
+  Enabled: false

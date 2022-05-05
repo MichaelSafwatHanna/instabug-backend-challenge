@@ -1,8 +1,8 @@
+# frozen_string_literal: true
+
 class Message < ApplicationRecord
   include Elasticsearch::Model
   include Elasticsearch::Model::Callbacks
-
-  attr_reader :key
 
   belongs_to :chat
 
@@ -14,22 +14,20 @@ class Message < ApplicationRecord
   before_validation :remove_whitespaces
 
   def remove_whitespaces
-    unless self.content.nil?
-      self.content.strip!
-    end
+    content&.strip!
   end
 
   def key
-    @key = "messages:#{self.chat.id}"
+    @key = "messages:#{chat.id}"
   end
 
   def respect_counters
-    self.chat.increment(:messages_count)
-    self.chat.save!
+    chat.increment(:messages_count)
+    chat.save!
   end
 
   def get_number
-    if self.number == 0
+    if number.zero?
       entry = $redis.get(key)
 
       if entry.nil?
@@ -40,39 +38,39 @@ class Message < ApplicationRecord
         self.number = count
       end
     else
-      self.number
+      number
     end
   end
 
   def assign_number
-    self.get_number
-    $redis.set(key, self.number.to_s)
+    get_number
+    $redis.set(key, number.to_s)
   end
 
   def self.search_content(app_token, chat_number, query)
-    response = self.search({
-                             query:
-                               {
-                                 bool:
-                                   {
-                                     must: [
-                                       { match: { "chat.number": chat_number } },
-                                       { match: { "chat.application.token": app_token } },
-                                       { match: { "content": query } }
-                                     ]
-                                   }
-                               }
-                           })
+    response = search({
+                        query:
+                          {
+                            bool:
+                              {
+                                must: [
+                                  { match: { "chat.number": chat_number } },
+                                  { match: { "chat.application.token": app_token } },
+                                  { match: { "content": query } }
+                                ]
+                              }
+                          }
+                      })
     response.results.map { |r| { number: r._source.number, content: r._source.content } }
   end
 
   # elasticsearch index
   def as_indexed_json(_options = nil)
     as_json(
-      only: [:id, :number, :content],
+      only: %i[id number content],
       include: {
         chat: {
-          only: [:id, :number],
+          only: %i[id number],
           include: {
             application: { only: [:token] }
           }
@@ -84,16 +82,16 @@ class Message < ApplicationRecord
   settings index: { number_of_shards: 1, analysis: {
     filter: {
       trigrams_filter: {
-        type: "ngram",
+        type: 'ngram',
         min_gram: 3,
         max_gram: 3
       }
     },
     analyzer: {
       trigrams: {
-        type: "custom",
-        tokenizer: "standard",
-        filter: ["lowercase", "trigrams_filter"]
+        type: 'custom',
+        tokenizer: 'standard',
+        filter: %w[lowercase trigrams_filter]
       }
     }
   } } do
@@ -110,5 +108,4 @@ class Message < ApplicationRecord
       end
     end
   end
-
 end

@@ -1,22 +1,23 @@
+# frozen_string_literal: true
+
 class Chat < ApplicationRecord
   belongs_to :application
   has_many :messages
-  attr_reader :key
 
   after_initialize :get_number
   validates_uniqueness_of :number, scope: :application_id
 
   def respect_counters
-    self.application.increment(:chats_count)
-    self.application.save!
+    application.increment(:chats_count)
+    application.save!
   end
 
   def key
-    @key = "chats:#{self.application.id}"
+    @key = "chats:#{application.id}"
   end
 
   def get_number
-    if self.number == 0
+    if number.zero?
       entry = $redis.get(key)
 
       if entry.nil?
@@ -27,12 +28,12 @@ class Chat < ApplicationRecord
         self.number = count
       end
     else
-      self.number
+      number
     end
   end
 
   def assign_number
-    self.get_number
-    $redis.set(key, self.number.to_s)
+    get_number
+    $redis.set(key, number.to_s)
   end
 end

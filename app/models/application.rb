@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Application < ApplicationRecord
   has_many :chats
 
@@ -11,9 +13,7 @@ class Application < ApplicationRecord
   before_validation :remove_whitespaces
 
   def remove_whitespaces
-    unless self.name.nil?
-      self.name.strip!
-    end
+    name&.strip!
   end
 
   def set_token
@@ -21,6 +21,6 @@ class Application < ApplicationRecord
   end
 
   def without_token
-    self.token == nil
+    token.nil?
   end
 end

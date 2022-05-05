@@ -1,6 +1,6 @@
+# frozen_string_literal: true
+
 Rails.application.configure do
-
-
   # Settings specified here will take precedence over those in config/application.rb.
 
   # In the development environment your application's code is reloaded on
@@ -18,7 +18,6 @@ Rails.application.configure do
   #   config.public_file_server.headers = {
   #     'Cache-Control' => "public, max-age=#{2.days.to_i}"
   #   }
-  
 
   # Store uploaded files on the local file system (see config/storage.yml for options)
   config.active_storage.service = :local
@@ -36,7 +35,6 @@ Rails.application.configure do
 
   # Highlight code that triggered database queries in logs.
   config.active_record.verbose_query_logs = true
-
 
   # Raises error for missing translations
   # config.action_view.raise_on_missing_translations = true

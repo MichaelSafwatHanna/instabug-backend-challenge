@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ChatSerializer
   class Show < ActiveModel::Serializer
     attributes :number, :messages_count

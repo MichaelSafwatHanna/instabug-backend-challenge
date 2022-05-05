@@ -1,20 +1,20 @@
+# frozen_string_literal: true
+
 module Api
   module V1
     class ApplicationController < BaseApplicationController
-
       def index
         apps = Application.all
-        serialized = ActiveModelSerializers::SerializableResource.new(apps, each_serializer: ApplicationSerializer::Show)
-        render :json => { data: serialized }, status: :ok
+        serialized = ActiveModelSerializers::SerializableResource.new(apps,
+                                                                      each_serializer: ApplicationSerializer::Show)
+        render json: { data: serialized }, status: :ok
       end
 
       def show
-        begin
-          app = Application.find_by!(token: params[:id])
-          render json: { data: ApplicationSerializer::Show.new(app).as_json }, status: :ok
-        rescue ActiveRecord::RecordNotFound => e
-          render status: :not_found
-        end
+        app = Application.find_by!(token: params[:id])
+        render json: { data: ApplicationSerializer::Show.new(app).as_json }, status: :ok
+      rescue ActiveRecord::RecordNotFound
+        render status: :not_found
       end
 
       def create
@@ -23,7 +23,7 @@ module Api
         if app.save
           render json: ApplicationSerializer::Create.new(app).to_json, status: :ok
         else
-          render json: { message: "Something went wrong!", errors: app.errors }, status: :not_acceptable
+          render json: { message: 'Something went wrong!', errors: app.errors }, status: :not_acceptable
         end
       end
 
@@ -34,14 +34,15 @@ module Api
         if app.save
           render json: ApplicationSerializer::Create.new(app).to_json, status: :ok
         else
-          render json: { message: "Something went wrong!", errors: app.errors }, status: :not_acceptable
+          render json: { message: 'Something went wrong!', errors: app.errors }, status: :not_acceptable
         end
       end
 
-      private def app_body
+      private
+
+      def app_body
         params.require(:application).permit(:name)
       end
     end
-
   end
 end
