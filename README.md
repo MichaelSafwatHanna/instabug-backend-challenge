@@ -1,19 +1,21 @@
 # Instabug backend challenge
 
 - [Instabug backend challenge](#instabug-backend-challenge)
-    - [Problem definition](#problem-definition)
-    - [Phases](#phases)
-        - [Analysis](#analysis)
-            - [Database design](#database-design)
-                - [Application](#application)
-                - [Chats](#chats)
-                - [Messages](#messages)
-            - [API Design](#api-design)
-                - [Models](#models)
-                - [Endpoints](#endpoints)
-        - [Implementation](#implementation)
-    - [Tradeoffs](#tradeoffs)
-    - [To improve](#to-improve)
+  - [Problem definition](#problem-definition)
+  - [Phases](#phases)
+    - [Analysis](#analysis)
+      - [Database design](#database-design)
+        - [Application](#application)
+        - [Chats](#chats)
+        - [Messages](#messages)
+      - [API Design](#api-design)
+        - [Models](#models)
+        - [Endpoints](#endpoints)
+    - [Implementation](#implementation)
+  - [API Testing (using cURL)](#api-testing-using-curl)
+  - [Run unit tests](#run-unit-tests)
+  - [Tradeoffs](#tradeoffs)
+  - [To improve](#to-improve)
 
 ## Problem definition
 
@@ -198,28 +200,128 @@ Response
 - [x] Implement entity numbering [1 day]
 - [x] Implement queueing [1 day]
 - [x] Implement search endpoint along with elastic search connection [1 day]
-- [ ] Unit testing
-- [ ] Refactoring
+- [x] Unit testing
+- [x] Refactoring
+
+## API Testing (using [cURL](https://curl.se/))
+
+- Create application
+
+```bash
+curl -X POST \
+  http://localhost:3000/api/v1/application \
+  -H 'content-type: application/json' \
+  -d '{ "name": "Test app" }'
+```
+
+- Get an application
+
+```bash
+curl http://localhost:3000/api/v1/application/{token} \
+  -H 'content-type: application/json'
+```
+
+- Get all applications
+
+```bash
+curl http://localhost:3000/api/v1/application \
+  -H 'content-type: application/json'
+```
+
+- Update application name
+
+```bash
+curl -X PUT \
+  http://localhost:3000/api/v1/application/{token} \
+  -H 'content-type: application/json' \
+  -d '{ "name": "Test app" }'
+```
+
+- Create a chat
+
+```bash
+curl -X POST \
+  http://localhost:3000/api/v1/application/{token}/chat \
+  -H 'content-type: application/json'
+```
+
+- Get a chat of some application
+
+```bash
+curl http://localhost:3000/api/v1/application/{token}/chat/{chat_number} \
+  -H 'content-type: application/json'
+```
+
+- Get all chat of some application
+
+```bash
+curl http://localhost:3000/api/v1/application/{token}/chat \
+  -H 'content-type: application/json'
+```
+
+- Create a message
+
+```bash
+curl -X POST \
+  http://localhost:3000/api/v1/application/{token}/chat/{chat_number}/message \
+  -H 'content-type: application/json'\
+  -d '{ "content": "Test message" }'
+```
+
+- Get a message of some chat
+
+```bash
+curl http://localhost:3000/api/v1/application/{token}/chat/{chat_number}/message/{message_number} \
+  -H 'content-type: application/json'
+```
+
+- Get all messages of some chat
+
+```bash
+curl http://localhost:3000/api/v1/application/{token}/chat/{chat_number}/message/ \
+  -H 'content-type: application/json'
+```
+
+- Search for messages in some chat
+
+```bash
+curl http://localhost:3000/api/v1/application/{token}/chat/{chat_number}/search?query={search_term} \
+  -H 'content-type: application/json'
+```
+
+## Run unit tests
+
+```bash
+> docker compose run api bash -c "rake db:test:prepare && rails test"
+```
 
 ## Tradeoffs
 
-- Adding the app token to all entities' rows VS Adding the app id
+- Denormalizing tables by adding token (and) chat number to tables
 
-| PROS           | CONS                                                               |
-| :------------- | :----------------------------------------------------------------- |
-| Simple queries | Data duplication (but won’t be an issue as the token is immutable) |
+| PROS                                                                          | CONS                                                                                       |
+| :---------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------- |
+| Simple queries if the token/chat_number exists hence More performant queries. | Data duplication/denormalization (but won’t be an issue as the token/number are immutable) |
+|                                                                               | More complex queries when working with the foreign keys hence less performance.            |
+
+
+> 
 
 ---
 
 - Use DB table for tracking sequential numbering VS using Redis
 
-| PROS                                                                                      | CONS                                                  |
-| :---------------------------------------------------------------------------------------- | :---------------------------------------------------- |
-| DB easier in integration and access                                                       | DB is slower and will increase traffic on it.         |
-| Redis is in memory so 10x faster and will distribute the load instead of consuming the db | Redis requires additional setup and first time to use |
+| PROS                                                           | CONS                             |
+| :------------------------------------------------------------- | :------------------------------- |
+| DB easier in integration and access.                           | DB is slower.                    |
+| Redis is in memory so will be faster.                          | Will increase traffic on the DB. |
+| Will distribute the load to Redis instead of consuming the db. | Redis requires additional setup. |
+| Chance to try working with Redis.                              | First time to use Redis.         |
 
 ---
 
 ## To improve
 
-- [ ] Improve dev environment scripts, maybe use npm.
+- [ ] Create [Index worker (Indexer)](https://github.com/elastic/elasticsearch-rails/blob/main/elasticsearch-model/README.md#asynchronous-callbacks) to index messages asynchronously.
+- [ ] Integration test for the whole flow.
+- [ ] Improve dev environment scripts.
