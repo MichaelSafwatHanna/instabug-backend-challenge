@@ -14,10 +14,7 @@ timeout 300 bash -c "until curl --silent --output /dev/null http://$ELASTICSEARC
 
 if [ -z $WORKER ]
 then
-    rake db:create;
-    rake db:test:prepare;
-    rails db:migrate;
-    rails db:seed;
+    rake app:bootstrap;
 fi
 
 # Then exec the container's main process (what's set as CMD in the Dockerfile).
