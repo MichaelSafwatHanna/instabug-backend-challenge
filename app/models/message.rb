@@ -9,8 +9,6 @@ class Message < ApplicationRecord
   validates_uniqueness_of :number, scope: :chat_id
   validates :content, presence: true
 
-  after_initialize :get_number
-
   before_validation :remove_whitespaces
 
   def remove_whitespaces
@@ -19,11 +17,6 @@ class Message < ApplicationRecord
 
   def key
     @key = "messages:#{chat.id}"
-  end
-
-  def respect_counters
-    chat.increment(:messages_count)
-    chat.save!
   end
 
   def get_number

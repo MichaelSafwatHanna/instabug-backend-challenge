@@ -4,13 +4,7 @@ class Chat < ApplicationRecord
   belongs_to :application
   has_many :messages
 
-  after_initialize :get_number
   validates_uniqueness_of :number, scope: :application_id
-
-  def respect_counters
-    application.increment(:chats_count)
-    application.save!
-  end
 
   def key
     @key = "chats:#{application.id}"

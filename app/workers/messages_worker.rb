@@ -15,9 +15,7 @@ class MessagesWorker
         message = Message.new(content: deserialized['content'], chat_id: deserialized['chat_id'],
                               number: deserialized['number'])
 
-        if message.save!
-          message.respect_counters
-        else
+        unless message.save!
           puts 'Transaction failed!'
           puts "Couldn't create message on chat with id #{deserialized['chat_id']} and message number #{deserialized['number']}"
           raise ActiveRecord::Rollback

@@ -64,6 +64,7 @@ services:
       RABBITMQ_HOST: rabbitmq
       REDIS: redis
       ELASTICSEARCH_HOST: elasticsearch
+      RAILS_ENV: ${ENVIRONMENT}
     depends_on:
       - db
       - rabbitmq
@@ -86,7 +87,7 @@ services:
       RABBITMQ_HOST: rabbitmq
       REDIS: redis
       ELASTICSEARCH_HOST: elasticsearch
-      RAKE_ENV: development
+      RAKE_ENV: ${ENVIRONMENT}
       WORKER: true
     depends_on:
       - db

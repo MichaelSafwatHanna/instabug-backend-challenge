@@ -14,9 +14,7 @@ class ChatsWorker
       Chat.transaction do
         chat = Chat.new(application_id: deserialized['app_id'], number: deserialized['number'])
 
-        if chat.save!
-          chat.respect_counters
-        else
+        unless chat.save!
           puts 'Transaction failed!'
           puts "Couldn't create chat on application with id #{deserialized['app_id']} and chat number #{deserialized['number']}"
           raise ActiveRecord::Rollback

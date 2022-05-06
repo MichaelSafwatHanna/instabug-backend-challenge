@@ -202,6 +202,7 @@ Response
 - [x] Implement search endpoint along with elastic search connection [1 day]
 - [x] Unit testing
 - [x] Refactoring
+- [x] Counters sync cron job
 
 ## API Testing (using [cURL](https://curl.se/))
 
