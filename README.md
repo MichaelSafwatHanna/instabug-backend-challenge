@@ -1,21 +1,6 @@
 # Instabug backend challenge
 
-- [Instabug backend challenge](#instabug-backend-challenge)
-  - [Problem definition](#problem-definition)
-  - [Phases](#phases)
-    - [Analysis](#analysis)
-      - [Database design](#database-design)
-        - [Application](#application)
-        - [Chats](#chats)
-        - [Messages](#messages)
-      - [API Design](#api-design)
-        - [Models](#models)
-        - [Endpoints](#endpoints)
-    - [Implementation](#implementation)
-  - [API Testing (using cURL)](#api-testing-using-curl)
-  - [Run unit tests](#run-unit-tests)
-  - [Tradeoffs](#tradeoffs)
-  - [To improve](#to-improve)
+> :warning: This is my first trial with use Ruby, Rails, Redis, RabbitMQ and Elasticsearch.
 
 ## Problem definition
 
@@ -52,6 +37,24 @@ It is allowed for chats and messages to take time to be persisted.
 
 You should optimize your tables by adding appropriate indices.
 Your app should be containerized. We should only run `docker-compose up` to run the whole stack.
+
+## Toolbox
+
+| Category         | Tool                                                                                   | Usage                                            |
+| :--------------- | :------------------------------------------------------------------------------------- | :----------------------------------------------- |
+| Base             | [Ruby on rails (V5)](https://rubyonrails.org/)                                         |                                                  |
+| Database         | [MySQL](https://www.mysql.com/)                                                        |                                                  |
+| Cache            | [Redis](https://redis.io/)                                                             | A global store to track custom numbering         |
+| Queueing         | [RabbitMQ](https://www.rabbitmq.com/) + [Sneakers](https://github.com/jondot/sneakers) | Queuing/consuming chat/message creation requests |
+| Search           | [Elasticsearch](https://www.elastic.co/elasticsearch/)                                 | Searching in messages' content                   |
+| Scheduling       | Cron + [whenever](https://github.com/javan/whenever)                                   | Scheduling counters sync job                     |
+| Containerization | [Docker](https://www.docker.com/)                                                      | Base environment for the app to run inside       |
+| Commits          | [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)                 |                                                  |
+| CI               | GitHub actions                                                                         |                                                  |
+
+### High level diagram
+
+![services-diagram](./diagrams/services-diagram.jpeg)
 
 ## Phases
 
@@ -106,189 +109,202 @@ Chat: {
 
 ##### Endpoints
 
-POST /applications
+Application routes
 
-Request
+1. POST /applications
 
-```()
-{
-    name: string;
-}
-```
+    Request
 
-Response
+    ```()
+    {
+        name: string;
+    }
+    ```
 
-```()
-{
-    token: uuid;
-}
-```
+    Response
 
-GET /applications/[application_token]
+    ```()
+    {
+        token: uuid;
+    }
+    ```
 
-Response
+2. GET /applications/[application_token]
 
-```()
-{
-    name: string;
-    chats_count: int;
-}
-```
+    Response
 
-POST /application/[application_token]/chat
+    ```()
+    {
+        name: string;
+        chats_count: int;
+    }
+    ```
 
-Response
+Chat routes
 
-```()
-{
-    chat_number: int;
-}
-```
+1. POST /application/[application_token]/chat
 
-GET /application/[application_token]/chat/[chat_number]
+    Response
 
-Response
+    ```()
+    {
+        chat_number: int;
+    }
+    ```
 
-```()
-{
-    messages_count: int;
-    messages: Message[];
-}
-```
+2. GET /application/[application_token]/chat/[chat_number]
 
-POST /application/[application_token]/chat/[chat_number]/message
+    Response
 
-Request
+    ```()
+    {
+        messages_count: int;
+        messages: Message[];
+    }
+    ```
 
-```()
-{
-    content: string;
-}
-```
+3. GET /application/[application_token]/chat/[chat_number]/search?q=[search_terms]
 
-Response
+    Response
 
-```()
-{
-    message_number: int;
-}
-```
+    ```()
+    {
+        messages: Message[];
+    }
+    ```
 
-GET /application/[application_token]/chat/[chat_number]/messages/[message_number]
+Message routes
 
-Response
+1. POST /application/[application_token]/chat/[chat_number]/message
 
-```()
-{
-    content: string;
-}
-```
+    Request
 
-GET /application/[application_token]/chat/[chat_number]/search?q=[search_terms]
+    ```()
+    {
+        content: string;
+    }
+    ```
 
-Response
+    Response
 
-```()
-{
-    messages: Message[];
-}
-```
+    ```()
+    {
+        message_number: int;
+    }
+    ```
+
+2. GET /application/[application_token]/chat/[chat_number]/messages/[message_number]
+
+    Response
+
+    ```()
+    {
+        content: string;
+    }
+    ```
 
 ### Implementation
 
-- [x] Implement basic crud operations for all entities (without numbering and queueing) [2 days]
-- [x] Implement entity numbering [1 day]
-- [x] Implement queueing [1 day]
-- [x] Implement search endpoint along with elastic search connection [1 day]
+- [x] Init rails inside docker environment.
+- [x] Implement basic crud operations for all entities (without numbering and queueing)
+- [x] Implement entity numbering
+- [x] Implement queueing
+- [x] Implement search endpoint along with elastic search connection
 - [x] Unit testing
 - [x] Refactoring
 - [x] Counters sync cron job
 
 ## API Testing (using [cURL](https://curl.se/))
 
-- Create application
+### Application tests
 
-```bash
-curl -X POST \
-  http://localhost:3000/api/v1/application \
-  -H 'content-type: application/json' \
-  -d '{ "name": "Test app" }'
-```
+1. Create application
 
-- Get an application
+    ```bash
+    curl -X POST \
+      http://localhost:3000/api/v1/application \
+      -H 'content-type: application/json' \
+      -d '{ "name": "Test app" }'
+    ```
 
-```bash
-curl http://localhost:3000/api/v1/application/{token} \
-  -H 'content-type: application/json'
-```
+1. Get an application
 
-- Get all applications
+    ```bash
+    curl http://localhost:3000/api/v1/application/{token} \
+      -H 'content-type: application/json'
+    ```
 
-```bash
-curl http://localhost:3000/api/v1/application \
-  -H 'content-type: application/json'
-```
+1. Get all applications
 
-- Update application name
+    ```bash
+    curl http://localhost:3000/api/v1/application \
+      -H 'content-type: application/json'
+    ```
 
-```bash
-curl -X PUT \
-  http://localhost:3000/api/v1/application/{token} \
-  -H 'content-type: application/json' \
-  -d '{ "name": "Test app" }'
-```
+1. Update application name
 
-- Create a chat
+    ```bash
+    curl -X PUT \
+      http://localhost:3000/api/v1/application/{token} \
+      -H 'content-type: application/json' \
+      -d '{ "name": "Test app 2" }'
+    ```
 
-```bash
-curl -X POST \
-  http://localhost:3000/api/v1/application/{token}/chat \
-  -H 'content-type: application/json'
-```
+### Chat tests
 
-- Get a chat of some application
+1. Create a chat
 
-```bash
-curl http://localhost:3000/api/v1/application/{token}/chat/{chat_number} \
-  -H 'content-type: application/json'
-```
+    ```bash
+    curl -X POST \
+      http://localhost:3000/api/v1/application/{token}/chat \
+      -H 'content-type: application/json'
+    ```
 
-- Get all chat of some application
+1. Get a chat of some application
 
-```bash
-curl http://localhost:3000/api/v1/application/{token}/chat \
-  -H 'content-type: application/json'
-```
+    ```bash
+    curl http://localhost:3000/api/v1/application/{token}/chat/{chat_number} \
+      -H 'content-type: application/json'
+    ```
 
-- Create a message
+1. Get all chat of some application
 
-```bash
-curl -X POST \
-  http://localhost:3000/api/v1/application/{token}/chat/{chat_number}/message \
-  -H 'content-type: application/json'\
-  -d '{ "content": "Test message" }'
-```
+    ```bash
+    curl http://localhost:3000/api/v1/application/{token}/chat \
+      -H 'content-type: application/json'
+    ```
 
-- Get a message of some chat
+### Message tests
 
-```bash
-curl http://localhost:3000/api/v1/application/{token}/chat/{chat_number}/message/{message_number} \
-  -H 'content-type: application/json'
-```
+1. Create a message
 
-- Get all messages of some chat
+    ```bash
+    curl -X POST \
+      http://localhost:3000/api/v1/application/{token}/chat/{chat_number}/message \
+      -H 'content-type: application/json'\
+      -d '{ "content": "Test message" }'
+    ```
 
-```bash
-curl http://localhost:3000/api/v1/application/{token}/chat/{chat_number}/message/ \
-  -H 'content-type: application/json'
-```
+1. Get a message of some chat
 
-- Search for messages in some chat
+    ```bash
+    curl http://localhost:3000/api/v1/application/{token}/chat/{chat_number}/message/{message_number} \
+      -H 'content-type: application/json'
+    ```
 
-```bash
-curl http://localhost:3000/api/v1/application/{token}/chat/{chat_number}/search?query={search_term} \
-  -H 'content-type: application/json'
-```
+1. Get all messages of some chat
+
+    ```bash
+    curl http://localhost:3000/api/v1/application/{token}/chat/{chat_number}/message/ \
+      -H 'content-type: application/json'
+    ```
+
+1. Search for messages in some chat
+
+    ```bash
+    curl http://localhost:3000/api/v1/application/{token}/chat/{chat_number}/search?query={search_term} \
+      -H 'content-type: application/json'
+    ```
 
 ## Run unit tests
 
@@ -297,18 +313,6 @@ curl http://localhost:3000/api/v1/application/{token}/chat/{chat_number}/search?
 ```
 
 ## Tradeoffs
-
-- Denormalizing tables by adding token (and) chat number to tables
-
-| PROS                                                                          | CONS                                                                                       |
-| :---------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------- |
-| Simple queries if the token/chat_number exists hence More performant queries. | Data duplication/denormalization (but won’t be an issue as the token/number are immutable) |
-|                                                                               | More complex queries when working with the foreign keys hence less performance.            |
-
-
-> 
-
----
 
 - Use DB table for tracking sequential numbering VS using Redis
 
@@ -324,5 +328,9 @@ curl http://localhost:3000/api/v1/application/{token}/chat/{chat_number}/search?
 ## To improve
 
 - [ ] Create [Index worker (Indexer)](https://github.com/elastic/elasticsearch-rails/blob/main/elasticsearch-model/README.md#asynchronous-callbacks) to index messages asynchronously.
-- [ ] Integration test for the whole flow.
+- [ ] Move the cron job for synchronizing counters to be in its own container.
+- [ ] Integration test for the whole flow (can be done in Go language).
 - [ ] Improve dev environment scripts.
+- [ ] Improve logging.
+- [ ] Use uuid for all db ids.
+- [ ] Improve seeding.

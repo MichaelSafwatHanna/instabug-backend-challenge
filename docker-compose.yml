@@ -74,7 +74,7 @@ services:
       - elasticsearch
 
   workers:
-    container_name: rabbitmq.consumers
+    container_name: workers
     build:
       context: .
       dockerfile: Dockerfile.workers
