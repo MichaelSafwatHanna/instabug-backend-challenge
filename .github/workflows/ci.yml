@@ -1,0 +1,47 @@
+name: "CI"
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      elasticsearch:
+        image: elasticsearch:7.17.1
+        ports:
+          - 9200:9200
+        env:
+          discovery.type: single-node
+          xpack.security.enabled: false
+          logger.level: WARN
+    env:
+      RAILS_ENV: test
+      DB_URL_TEST: "mysql2://root:root@localhost/test"
+    steps:
+      - name: Set up MySQL
+        run: sudo /etc/init.d/mysql start
+      - uses: actions/checkout@v3
+      - uses: ruby/setup-ruby@477b21f02be01bcb8030d50f37cfec92bfa615b6
+        with:
+          ruby-version: 2.5.9
+      - run: bundle install
+      - name: Prepare test db
+        run: rake db:create && rake db:test:prepare
+      - name: Test
+        run: rails test
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ruby/setup-ruby@477b21f02be01bcb8030d50f37cfec92bfa615b6
+        with:
+          ruby-version: 2.5.9
+      - run: bundle install
+      - name: Lint
+        run: rubocop
+
