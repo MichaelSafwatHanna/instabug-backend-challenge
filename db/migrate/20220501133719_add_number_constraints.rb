@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 class AddNumberConstraints < ActiveRecord::Migration[5.2]
   def change
     add_index :chats, %i[number application_id], unique: true

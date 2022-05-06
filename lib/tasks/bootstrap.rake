@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 namespace :app do
   desc 'Bootstraps application'
   task :bootstrap do

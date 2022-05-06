@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 ENV.each { |k, v| env(k, v) }
 
 set :output, '/instabug/log/cron.log'

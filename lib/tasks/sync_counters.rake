@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 namespace :app do
   desc 'Sync Chats/Messages Counters'
   task sync_counters: :environment do

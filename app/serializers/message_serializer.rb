@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 class MessageSerializer
   class Show < ActiveModel::Serializer
     attributes :number, :content
