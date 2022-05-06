@@ -43,6 +43,7 @@ services:
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
+      - logger.level=WARN
 
   api:
     container_name: api
